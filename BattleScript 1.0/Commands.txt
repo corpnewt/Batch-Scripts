@@ -1,0 +1,13 @@
+When playing this game, at most prompts you should be able to type these commands and get the desired results:
+
+sounds on/off			turns on/off sounds
+animations on/off		turns on/off animations
+devmode on/off			turns on/off dev mode which generates a text file of cpu player output
+cheats on/off			turns on/off cheats
+nowait on/off			Disables/Enables wait time during CPU turn
+mainmenu			takes you back to the main menu
+showmethemoney			when cheats are on, shows your opponents board
+
+In the ship placing/shooting menu:
+
+random				randomly places ships/shoots for you
