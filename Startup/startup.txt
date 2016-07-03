@@ -1,0 +1,36 @@
+  ###            ###
+ #  Instructions  #
+###             ###
+
+# Options are:
+# path = path to program to launch
+# exec = the executable to check for if only one instance is allowed
+# name = the name to display in the script
+# args = any arguments (accepts double-quotes)
+# mult = y/n allow multiple instances?
+# mini = y/n use start with /min ?
+# dela = how many extra seconds to wait before launching?
+# webs = a web address - this is superceded by the path variable though
+#
+# Each entry is separated by a semicolon (;)
+
+  ###            ###
+ # Apps to launch #
+###             ###
+
+path=C:\Program Files (x86)\Ubisoft\Ubisoft Game Launcher\Uplay.exe;mini=y
+
+path=C:\Windows\System32\cscript.exe;name=Uplay Minimizer;args=//nologo "C:\Utilities\Startup\Minimize.vbs" /exe:Uplay.exe /path:"C:\Program Files (x86)\Ubisoft\Ubisoft Game Launcher\Uplay.exe" /launch:false /wait:1500 /menuKey:c;exec=Uplay.exe;mini=n;mult=y;dela=5
+
+path=C:\Program Files (x86)\Origin\Origin.exe;args=/StartClientMinimized;mini=y
+
+path=D:\Program Files (x86)\Battle.net\Battle.net Launcher.exe;mini=y;args=--autostarted;exec=Battle.net.exe
+
+  ###               ###
+ # Scripts to launch #
+###                ###
+
+
+  ###               ###
+ # Finishing Touches #
+###               ###

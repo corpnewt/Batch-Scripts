@@ -1,0 +1,39 @@
+  ###                                 ###
+ # Battle.Net Launcher Start Minimized #
+###                                 ###
+
+There are 2 very important things we need to do to get the Battle.net Launcher
+to start minimized.  This is primarily for use with the Startup.bat script.
+
+1. Locate C:\C:\Users\Chip\AppData\Roaming\Battle.net\f3bcd997.config
+	Yours might be named different - but there should only be 2 .config files,
+	the settings one (f3bcd997 in my case) and Battle.net.config
+
+2. Open it and look for this line:    "MinimizedOnStartup": "false"
+
+3. If you find that line, change "false" to "true"
+	If you DIDN'T find that line, we need to add it.  The structure of the
+	.config file is pretty easy.  It's almost XML.  You can add it here:
+	
+	"Client":
+        {
+            "MinimizedOnStartup": "true",
+			"PlayScreen":
+            {
+				...
+			},
+			"Windows":
+            {
+                ...
+            }
+		}
+		
+	Just ensure that you have a comma (",") after each entry except the
+	last one - or the offending var will be deleted.
+	
+4. When you launch "Battle.net Launcher.exe", do it like so:
+
+	"Battle.net Launcher.exe" --autostarted
+
+	This convinces the launcher that it was started at login, which in turn
+	causes it to look for the "MinimizedOnStartup" variable.
