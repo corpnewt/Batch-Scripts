@@ -60,6 +60,7 @@ if "!vers!"=="" (
 if !vers! GEQ 10 set /a windowsTen=1
 
 :main
+set "menu="
 cls
 echo    ###                      ###
 echo   # Win10 Tool - by CorpNewt #
@@ -70,12 +71,12 @@ echo.
 REM Here's where we check our reg status - and update
 REM our menus accordingly.
 
-REM First - let's check for Universal Time
-for /f "tokens=3*" %%i in ('reg.exe query "HKLM\SYSTEM\CurrentControlSet\Control\TimeZoneInformation" /v "RealTimeIsUniversal" 2^> nul') do (
-	if NOT "%%i"=="" (
-		set useUniversal=%%i
-	)
-)
+REM First - let's gather our reg values
+call :readReg "useUniversal" "HKLM\SYSTEM\CurrentControlSet\Control\TimeZoneInformation" "RealTimeIsUniversal"
+call :readReg "useDarkTheme" "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize" "AppsUseLightTheme"
+call :readReg "removeLoginBackground" "HKLM\SOFTWARE\Policies\Microsoft\Windows\System" "DisableLogonBackgroundImage"
+call :readReg "forceXDDM" "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services" "fEnableWddmDriver"
+
 if /i "!useUniversal:~-1,1!"=="1" (
 	REM We are using Universal Time
 	echo 1. [DISABLE] Universal Time
@@ -85,15 +86,11 @@ if /i "!useUniversal:~-1,1!"=="1" (
 
 REM Now we see if we're on Windows 10 or not
 if !vers! LSS 10 (
-	echo #. [N/A]     Dark Theme          [Windows 10 ONLY]
+	echo #. [N/A]     Dark Theme           [Windows 10 ONLY]
 	echo #. [N/A]     Login BG Solid Color [Windows 10 ONLY]
+	echo #. [N/A]     Force XDDM for RDP   [Windows 10 ONLY]
 ) else (
 	REM Let's check for Dark Theme
-	for /f "tokens=3*" %%i in ('reg.exe query "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v "AppsUseLightTheme" 2^> nul') do (
-		if NOT "%%i"=="" (
-			set useDarkTheme=%%i
-		)
-	)
 	if /i "!useDarkTheme:~-1,1!"=="0" (
 		REM We are using Dark Theme
 		echo 2. [DISABLE] Dark Theme
@@ -102,16 +99,19 @@ if !vers! LSS 10 (
 	)
 	
 	REM Let's check for Login Background
-	for /f "tokens=3*" %%i in ('reg.exe query "HKLM\SOFTWARE\Policies\Microsoft\Windows\System" /v "DisableLogonBackgroundImage" 2^> nul') do (
-		if NOT "%%i"=="" (
-			set removeLoginBackground=%%i
-		)
-	)
 	if /i "!removeLoginBackground:~-1,1!"=="1" (
 		REM We are using Login Background
 		echo 3. [DISABLE] Login BG Solid Color
 	) else (
 		echo 3. [ENABLE]  Login BG Solid Color
+	)
+
+	REM Let's see if we're forcing XDDM already
+	if /i "!forceXDDM:~-1,1!"=="0" (
+		REM We are using Force XDDM for RDP
+		echo 4. [DISABLE] Force XDDM for RDP
+	) else (
+		echo 4. [ENABLE]  Force XDDM for RDP
 	)
 )
 echo.
@@ -129,6 +129,7 @@ REM Options DEPENDENT on Windows version 10+
 if !vers! GEQ 10 (
 	if "!menu!"=="2" goto switchDarkTheme
 	if "!menu!"=="3" goto switchLoginBackground
+	if "!menu!"=="4" goto switchXDDM
 )
 goto main
 
@@ -183,6 +184,38 @@ if /i "!removeLoginBackground:~-1,1!"=="1" (
 call :writeReg "HKLM\SOFTWARE\Policies\Microsoft\Windows\System" "DisableLogonBackgroundImage" "REG_DWORD" "!removeLoginBackground!"
 goto main
 
+:switchXDDM
+cls
+echo    ###                      ###
+echo   # Win10 Tool - by CorpNewt #
+echo  ###                      ###
+echo [Windows !winVers!]
+echo.
+if /i "!forceXDDM:~-1,1!"=="0" (
+	echo [DISABLING] Force XDDM for RDP
+	call :deleteReg "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services" "fEnableWddmDriver"
+) else (
+	echo [ENABLING]  Force XDDM for RDP
+	call :writeReg "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services" "fEnableWddmDriver" "REG_DWORD" "0"
+)
+goto main
+
+:readReg <return> <location> <variableName>
+REM Clear the return variable first
+set "%~1="
+if "%~3" == "" (
+	REM No variable name provided - query the location only
+	set "query="%~2^""
+) else (
+	set "query="%~2^" /v ^"%~3^""
+)
+for /f "tokens=3*" %%i in ('reg.exe query !query! 2^> nul') do (
+	if NOT "%%i"=="" (
+		set "%~1=%%i"
+	)
+)
+goto :EOF
+
 :writeReg <location> <variableName> <variableType> <value>
 echo.
 echo %~1
@@ -195,8 +228,21 @@ echo.
 timeout 5 > nul
 goto :EOF
 
-pause
-
+:deleteReg <location> <variableName>
+echo.
+if "%~2" == "" (
+	REM No variable name provided - query the location only
+	echo Deleting %~1...
+	reg delete "%~1" /f
+) else (
+	echo From %~1, Deleting %~2...
+	reg delete "%~1" /v "%~2" /f
+)
+echo.
+echo Done.
+echo.
+timeout 5 > nul
+goto :EOF
 
 REM ###############################################
 REM ###             Helper Methods              ###
